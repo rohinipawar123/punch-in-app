@@ -111,3 +111,9 @@ tr:hover {
   color: #666;
   margin-top: 10px;
 }
+.error {
+  color: red;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  text-align: center;
+}
