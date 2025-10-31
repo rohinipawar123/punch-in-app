@@ -1,0 +1,113 @@
+body {
+  background-color: #f7f9fc;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  color: #222;
+}
+
+.app-container {
+  text-align: center;
+  padding: 40px;
+}
+
+.title {
+  font-size: 2rem;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  color: #2e7d32;
+  margin-bottom: 30px;
+  font-size: 1rem;
+}
+
+.punch-card {
+  display: inline-block;
+  background: #fff;
+  padding: 25px 35px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.checkbox {
+  display: block;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+}
+
+.input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.btn,
+.btn-secondary {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: none;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn {
+  background-color: #007bff;
+}
+
+.btn:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+}
+
+.btn-secondary:hover {
+  background-color: #565e64;
+}
+
+.table-container {
+  margin-top: 40px;
+  display: inline-block;
+  background: #fff;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+.table-title {
+  margin-bottom: 15px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+th, td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #007bff;
+  color: white;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+.footer-note {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 10px;
+}
