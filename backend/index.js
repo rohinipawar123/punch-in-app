@@ -1,66 +1,69 @@
 import express from "express";
 import cors from "cors";
-import bodyParser from "body-parser";
-import dotenv from "dotenv";
 import couchbase from "couchbase";
-
-dotenv.config();
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
-// Couchbase setup
-let cluster, bucket, collection;
+const port = process.env.PORT || 10000;
 
+// Couchbase config
+const clusterConnStr = process.env.COUCHBASE_ENDPOINT;
+const username = process.env.COUCHBASE_USERNAME;
+const password = process.env.COUCHBASE_PASSWORD;
+const bucketName = process.env.COUCHBASE_BUCKET;
+
+let bucket, collection;
+
+// Connect to Couchbase
 async function initCouchbase() {
   try {
-    cluster = await couchbase.connect(process.env.CB_CONNECT_STRING, {
-      username: process.env.CB_USERNAME,
-      password: process.env.CB_PASSWORD,
+    const cluster = await couchbase.connect(clusterConnStr, {
+      username,
+      password,
     });
-
-    bucket = cluster.bucket("punchdata");
-    const scope = bucket.scope("punchscope");
-    collection = scope.collection("punches");
-
+    bucket = cluster.bucket(bucketName);
+    collection = bucket.defaultCollection();
     console.log("✅ Couchbase connected successfully");
   } catch (err) {
     console.error("❌ Couchbase connection failed:", err);
   }
 }
+initCouchbase();
 
-await initCouchbase();
-
-// Save punch-in time
-app.post("/api/punchin", async (req, res) => {
-  try {
-    const { time } = req.body;
-    const id = `punch_${Date.now()}`;
-
-    await collection.insert(id, {
-      time,
-      createdAt: new Date().toISOString(),
-    });
-
-    res.status(200).json({ message: "Punch-in saved", id });
-  } catch (err) {
-    console.error("Insert error:", err);
-    res.status(500).json({ error: err.message });
-  }
+// API routes
+app.get("/", (req, res) => {
+  res.send("Punch Backend is running");
 });
 
-// Get all punch-in times
-app.get("/api/punchin", async (req, res) => {
+app.get("/api/punches", async (req, res) => {
   try {
-    const query = `SELECT time, createdAt FROM punchdata.punchscope.punches ORDER BY createdAt DESC`;
+    const query = `SELECT p.* FROM \`${bucketName}\` p;`;
+    const cluster = await couchbase.connect(clusterConnStr, {
+      username,
+      password,
+    });
     const result = await cluster.query(query);
     res.json(result.rows);
   } catch (err) {
-    console.error("Query error:", err);
+    console.error("Error fetching punches:", err);
     res.status(500).json({ error: err.message });
   }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.post("/api/punches", async (req, res) => {
+  try {
+    const { time } = req.body;
+    const id = `punch-${Date.now()}`;
+    await collection.insert(id, { id, time });
+    res.status(201).json({ message: "Punch added", id, time });
+  } catch (err) {
+    console.error("Error adding punch:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`🚀 Server running on port ${port}`);
+});
