@@ -14,18 +14,24 @@ const username = process.env.COUCHBASE_USERNAME;
 const password = process.env.COUCHBASE_PASSWORD;
 const bucketName = process.env.COUCHBASE_BUCKET;
 
-let bucket, collection;
+// These are fixed for your setup:
+const scopeName = "punchscope";
+const collectionName = "punches";
 
-// Connect to Couchbase
+let cluster, bucket, collection;
+
 async function initCouchbase() {
   try {
-    const cluster = await couchbase.connect(clusterConnStr, {
+    cluster = await couchbase.connect(clusterConnStr, {
       username,
       password,
     });
+
     bucket = cluster.bucket(bucketName);
-    collection = bucket.defaultCollection();
-    console.log("✅ Couchbase connected successfully");
+    const scope = bucket.scope(scopeName);
+    collection = scope.collection(collectionName);
+
+    console.log("✅ Couchbase connected successfully to:", bucketName, scopeName, collectionName);
   } catch (err) {
     console.error("❌ Couchbase connection failed:", err);
   }
@@ -39,11 +45,7 @@ app.get("/", (req, res) => {
 
 app.get("/api/punches", async (req, res) => {
   try {
-    const query = `SELECT p.* FROM \`${bucketName}\` p;`;
-    const cluster = await couchbase.connect(clusterConnStr, {
-      username,
-      password,
-    });
+    const query = `SELECT p.* FROM \`${bucketName}\`.\`${scopeName}\`.\`${collectionName}\` p;`;
     const result = await cluster.query(query);
     res.json(result.rows);
   } catch (err) {
