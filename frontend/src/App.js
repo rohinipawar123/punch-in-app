@@ -1,85 +1,76 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+
+const API_BASE = "https://punch-in-app-544x.onrender.com/api";
 
 function App() {
-  const [time, setTime] = useState("");
   const [punches, setPunches] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const backendUrl = "https://https://punch-in-app-544x.onrender.com/api/punchin";
+  const [manualTime, setManualTime] = useState("");
 
-  // Get local time automatically when page loads
-  useEffect(() => {
-    const now = new Date();
-    const local = now.toLocaleTimeString();
-    setTime(local);
-    fetchPunches();
-  }, []);
-
-  // Fetch all punch-ins
+  // Fetch all punches
   const fetchPunches = async () => {
     try {
-      const res = await fetch(backendUrl);
+      const res = await fetch(`${API_BASE}/punches`);
       const data = await res.json();
       setPunches(data);
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.error("Error fetching punches:", err);
     }
   };
 
-  // Submit new punch-in
-  const handlePunch = async () => {
-    if (!time) return alert("Please enter a time");
-    setLoading(true);
+  useEffect(() => {
+    fetchPunches();
+  }, []);
+
+  // Auto punch in (local time)
+  const handleAutoPunch = async () => {
+    const time = new Date().toLocaleString();
+    await savePunch(time);
+  };
+
+  // Manual punch in
+  const handleManualPunch = async () => {
+    if (!manualTime) return alert("Please enter a time");
+    await savePunch(manualTime);
+    setManualTime("");
+  };
+
+  // Save punch
+  const savePunch = async (time) => {
     try {
-      await fetch(backendUrl, {
+      await fetch(`${API_BASE}/punches`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ time }),
       });
-      alert("Punch-in saved!");
-      setTime(new Date().toLocaleTimeString());
       fetchPunches();
     } catch (err) {
-      console.error("Save error:", err);
-      alert("Error saving punch-in");
+      console.error("Error saving punch:", err);
     }
-    setLoading(false);
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "500px",
-        margin: "50px auto",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <h2>👋 Punch In Tracker</h2>
-      <label>
-        Enter Time (or keep auto):{" "}
+    <div style={{ textAlign: "center", padding: "40px", fontFamily: "Arial" }}>
+      <h1>🕒 Punch In Tracker</h1>
+
+      <div style={{ margin: "20px" }}>
+        <button onClick={handleAutoPunch}>📍 Auto Punch In (Local Time)</button>
+      </div>
+
+      <div style={{ margin: "20px" }}>
         <input
           type="text"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
+          placeholder="Enter manual time"
+          value={manualTime}
+          onChange={(e) => setManualTime(e.target.value)}
         />
-      </label>
-      <button
-        onClick={handlePunch}
-        disabled={loading}
-        style={{
-          marginLeft: "10px",
-          padding: "6px 12px",
-          cursor: "pointer",
-        }}
-      >
-        {loading ? "Saving..." : "Punch In"}
-      </button>
+        <button onClick={handleManualPunch}>✍️ Manual Punch In</button>
+      </div>
 
-      <h3 style={{ marginTop: "40px" }}>My Punch History</h3>
-      {punches.length === 0 && <p>No punch-ins yet.</p>}
-      <ul>
+      <h2>All Punches</h2>
+      <ul style={{ listStyle: "none", padding: 0 }}>
         {punches.map((p, i) => (
-          <li key={i}>
-            🕒 {p.time} — <small>{new Date(p.createdAt).toLocaleString()}</small>
+          <li key={i} style={{ marginBottom: "10px" }}>
+            ⏰ {p.time}
           </li>
         ))}
       </ul>
