@@ -1,21 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 
-const API_BASE = "https://punch-in-app-544x.onrender.com/api";
+const API_BASE = process.env.REACT_APP_API_URL || "https://punch-in-app-544x.onrender.com/api";
 
 function App() {
   const [punches, setPunches] = useState([]);
   const [manualTime, setManualTime] = useState("");
   const [useLocal, setUseLocal] = useState(true);
   const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
+  // Fetch punches from backend
   const fetchPunches = async () => {
     try {
-      const res = await fetch(`${API_BASE}/punches`);
-      const data = await res.json();
+      const response = await fetch(`${API_BASE}/punches`);
+      const data = await response.json();
       setPunches(data.reverse());
     } catch (err) {
       console.error("Error fetching punches:", err);
+      setError("Unable to load punches.");
     }
   };
 
@@ -23,22 +27,31 @@ function App() {
     fetchPunches();
   }, []);
 
+  // Save punch
   const handlePunch = async () => {
-    const time = useLocal
-      ? new Date().toLocaleString()
-      : manualTime || new Date().toLocaleString();
-
+    setLoading(true);
+    setError("");
     try {
-      await fetch(`${API_BASE}/punches`, {
+      const punchTime = useLocal
+        ? new Date().toLocaleString()
+        : manualTime || new Date().toLocaleString();
+
+      const res = await fetch(`${API_BASE}/punches`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ time, note }),
+        body: JSON.stringify({ time: punchTime, note }),
       });
+
+      if (!res.ok) throw new Error("Failed to save punch");
+
+      await fetchPunches();
       setManualTime("");
       setNote("");
-      fetchPunches();
     } catch (err) {
       console.error("Error saving punch:", err);
+      setError("Could not save punch. Check your backend connection.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,7 +66,7 @@ function App() {
             type="checkbox"
             checked={useLocal}
             onChange={() => setUseLocal(!useLocal)}
-          />
+          />{" "}
           Use local time ({new Date().toLocaleString()})
         </label>
 
@@ -75,12 +88,15 @@ function App() {
           className="input"
         />
 
-        <button className="btn" onClick={handlePunch}>
-          Punch In
+        <button className="btn" onClick={handlePunch} disabled={loading}>
+          {loading ? "Saving..." : "Punch In"}
         </button>
+
         <button className="btn-secondary" onClick={fetchPunches}>
           Refresh
         </button>
+
+        {error && <p className="error">{error}</p>}
       </div>
 
       <div className="table-container">
