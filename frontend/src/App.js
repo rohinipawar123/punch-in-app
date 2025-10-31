@@ -4,7 +4,7 @@ function App() {
   const [time, setTime] = useState("");
   const [punches, setPunches] = useState([]);
   const [loading, setLoading] = useState(false);
-  const backendUrl = "https://<YOUR_BACKEND_URL>/api/punchin";
+  const backendUrl = "https://https://punch-in-app-544x.onrender.com/api/punchin";
 
   // Get local time automatically when page loads
   useEffect(() => {
